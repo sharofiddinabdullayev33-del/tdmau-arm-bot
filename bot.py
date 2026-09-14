@@ -15,7 +15,7 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
-TOKEN = "8889750976:AAFxkTtCjF_ICnP3zuLby6s518dt1D0EUkU"
+TOKEN = "8889750976:AAGc6iziVnIdniZpVuJIvXe8iN-DCOOpaHA"
 
 logging.basicConfig(level=logging.INFO)
 router = Router()
