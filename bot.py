@@ -1,4 +1,4 @@
-import asyncio
+ import asyncio
 import logging
 import sqlite3
 from aiogram import Bot, Dispatcher, F, Router
@@ -15,7 +15,7 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
-TOKEN = "8889750976:AAFxkTtCjF_IcNP3zuLby6s518dt1D0EUkU"
+TOKEN = "8889750976:AAFxkTtCjF_ICnP3zuLby6s518dt1D0EUkU"
 
 logging.basicConfig(level=logging.INFO)
 router = Router()
@@ -58,7 +58,13 @@ def get_dispatchers():
     cursor.execute("SELECT user_id FROM dispatchers")
     rows = cursor.fetchall()
     conn.close()
-    return [row[0] for row in rows]
+    
+    # Bazadan tashqari, doimiy asosiy dispetcher ID raqamini ham shu yerga qo'shamiz (7091086144)
+    default_admins = [7091086144]
+    db_admins = [row[0] for row in rows]
+    
+    # Hammasini birlashtirib, takrorlanmaydigan qilib qaytaramiz
+    return list(set(default_admins + db_admins))
 
 def save_order(student_id: int, book: str, name: str, faculty: str, phone: str, location_info: str):
     conn = sqlite3.connect("arm_database.db")
@@ -119,6 +125,8 @@ main_menu = ReplyKeyboardMarkup(
 async def start_cmd(message: Message, state: FSMContext):
     await state.clear()
     init_db()
+    # Har safar start bosganda asosiy dispetcherni bazaga ham avtomatik qo'shib qo'yamiz
+    add_dispatcher(7091086144)
     await message.answer(
         "👋 Assalomu alaykum! Termiz davlat muhandislik va agrotexnologiyalar universiteti "
         "“Inklyuziv ARM” xizmatiga xush kelibsiz. Kerakli bo‘limni tanlang:",
@@ -339,7 +347,6 @@ async def process_dispatcher_action(callback: CallbackQuery):
     disp_text, student_text = status_map.get(action, ("Holat o'zgardi", "Buyurtma holati o'zgardi"))
     student_id = update_order_status(order_id, disp_text)
     
-    # Tugmalarni qaytadan chiqaramiz (agar ret yoki can bo'lmasa, tugmalar turaveradi)
     dispatcher_kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -357,7 +364,6 @@ async def process_dispatcher_action(callback: CallbackQuery):
         ]
     )
     
-    # Agar buyurtma butunlay yopilsa, tugmalarni olib tashlaymiz
     markup_to_use = None if action in ["ret", "can"] else dispatcher_kb
 
     await callback.message.edit_text(
